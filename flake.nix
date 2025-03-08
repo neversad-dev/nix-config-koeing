@@ -16,7 +16,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
   };
 
   outputs = { self, home-manager, nixpkgs, ... }@inputs:
@@ -35,16 +35,16 @@
         forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
       overlays = import ./overlays { inherit inputs; };
       nixosConfigurations = {
-        nix-virt = nixpkgs.lib.nixosSystem {
+        nixos-vm = nixpkgs.lib.nixosSystem {
           specialArgs = { inherit inputs outputs; };
-          modules = [ ./hosts/nix-virt ];
+          modules = [ ./hosts/nixos-vm ];
         };
       };
       homeConfigurations = {
-        "neversad@nix-virt" = home-manager.lib.homeManagerConfiguration {
+        "neversad@nixos-vm" = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages."x86_64-linux";
           extraSpecialArgs = { inherit inputs outputs; };
-          modules = [ ./home/neversad/nix-virt.nix ];
+          modules = [ ./home/neversad/nixos-vm.nix ];
         };
       };
     };
