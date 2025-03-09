@@ -18,35 +18,53 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-24.11";
 
+    disko = {
+      url = "github:nix-community/disko/latest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    dotfiles = {
+      url = "git+https://code.m3tam3re.com/m3tam3re/dotfiles-flake-demo.git";
+      flake = false;
+    };
   };
 
-  outputs = { self, home-manager, nixpkgs, ... }@inputs:
-    let
-      inherit (self) outputs;
-      systems = [
-        "aarch64-linux"
-        "i686-linux"
-        "x86_64-linux"
-        "aarch64-darwin"
-        "x86_64-darwin"
-      ];
-      forAllSystems = nixpkgs.lib.genAttrs systems;
-    in {
-      packages =
+  outputs = {
+    self,
+    disko,
+    dotfiles,
+    home-manager,
+    nixpkgs,
+    ...
+  }@inputs: let
+    inherit (self) outputs;
+    systems = [
+    "aarch64-linux"
+    "i686-linux"
+    "x86_64-linux"
+    "aarch64-darwin"
+    "x86_64-darwin"
+    ];
+    forAllSystems = nixpkgs.lib.genAttrs systems;
+  in {
+    packages =
         forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
-      overlays = import ./overlays { inherit inputs; };
-      nixosConfigurations = {
-        nixos-vm = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs outputs; };
-          modules = [ ./hosts/nixos-vm ];
-        };
-      };
-      homeConfigurations = {
-        "neversad@nixos-vm" = home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages."x86_64-linux";
-          extraSpecialArgs = { inherit inputs outputs; };
-          modules = [ ./home/neversad/nixos-vm.nix ];
-        };
+    overlays = import ./overlays { inherit inputs; };
+    nixosConfigurations = {
+      nixos-vm = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs outputs; };
+        modules = [
+          ./hosts/nixos-vm
+          inputs.disko.nixosModules.disko
+        ];
       };
     };
+    homeConfigurations = {
+      "neversad@nixos-vm" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages."x86_64-linux";
+        extraSpecialArgs = { inherit inputs outputs; };
+        modules = [ ./home/neversad/nixos-vm.nix ];
+      };
+    };
+  };
 }
