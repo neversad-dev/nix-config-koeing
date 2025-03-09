@@ -56,15 +56,20 @@
         modules = [
           ./hosts/nixos-vm
           inputs.disko.nixosModules.disko
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.users.neversad = import ./home/neversad/nixos-vm.nix;
+
+          }
         ];
       };
     };
-    homeConfigurations = {
-      "neversad@nixos-vm" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages."x86_64-linux";
-        extraSpecialArgs = { inherit inputs outputs; };
-        modules = [ ./home/neversad/nixos-vm.nix ];
-      };
-    };
+    # homeConfigurations = {
+    #   "neversad@nixos-vm" = home-manager.lib.homeManagerConfiguration {
+    #     pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    #     extraSpecialArgs = { inherit inputs outputs; };
+    #     modules = [ ./home/neversad/nixos-vm.nix ];
+    #   };
+    # };
   };
 }
